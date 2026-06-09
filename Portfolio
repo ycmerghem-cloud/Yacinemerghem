@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yacine Merghem | Portfolio IA & Automation</title>
+    <!-- Typographies Cyber-Futuristes -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;500;700&family=Share+Tech+Mono&family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Variables par défaut (Thème Matrix) */
+            --theme-color: #00ff66;
+            --bg-base: #02050a;
+            --bg-card: rgba(4, 12, 7, 0.9);
+            --text-main: #e2e8f0;
+            --text-muted: #748396;
+            --border-color: rgba(0, 255, 102, 0.25);
+            --shadow-glow: rgba(0, 255, 102, 0.15);
+            --font-titles: 'Share Tech Mono', monospace;
+            --font-body: 'Share Tech Mono', monospace;
+        }
+
+        /* --- LE SWITCH DE THÈME STAR WARS --- */
+        #theme-switch {
+            display: none;
+        }
+
+        #theme-switch:checked ~ * {
+            --theme-color: #ffe81f; /* Jaune Star Wars */
+            --border-color: rgba(79, 172, 254, 0.4); /* Bleu sabre laser */
+            --shadow-glow: rgba(79, 172, 254, 0.3);
+            --bg-card: rgba(10, 15, 30, 0.85);
+            --font-titles: 'Cinzel', serif;
+            --font-body: 'Cinzel', serif;
+        }
+
+        /* Visibilité des canevas */
+        #matrix-canvas { display: block; }
+        #starwars-canvas { display: none; }
+
+        #theme-switch:checked ~ #matrix-canvas { display: none; }
+        #theme-switch:checked ~ #starwars-canvas { display: block; }
+
+        /* Contenus textuels adaptatifs */
+        .sw-text { display: none; }
+        .matrix-text { display: inline; }
+
+        #theme-switch:checked ~ main .matrix-text,
+        #theme-switch:checked ~ header .matrix-text { display: none; }
+        #theme-switch:checked ~ main .sw-text,
+        #theme-switch:checked ~ header .sw-text { display: inline; }
+
+        /* --- STRUCTURAL BASE --- */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            line-height: 1.6;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        .bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            opacity: 0.35;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 25px;
+        }
+
+        h1, h2, h3, .logo {
+            font-family: var(--font-titles);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Cinzel (Star Wars) a besoin d'un espacement réduit pour éviter le débordement */
+        #theme-switch:checked ~ main h1,
+        #theme-switch:checked ~ main h2,
+        #theme-switch:checked ~ main h3,
+        #theme-switch:checked ~ header .logo,
+        #theme-switch:checked ~ header .logo-name {
+            letter-spacing: 1px;
+        }
+
+        /* ========================================================
+           HEADER UNIQUE, ORIGINAL ET ANIMÉ SELON LE THÈME
+           ======================================================== */
+        header {
+            position: fixed;
+            top: 0; width: 100%;
+            z-index: 1000;
+            background: rgba(2, 5, 10, 0.9);
+            backdrop-filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        /* Animation Matrix : Barre de chargement système du terminal */
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0;
+            height: 2px;
+            background: var(--theme-color);
+            box-shadow: 0 0 10px var(--theme-color);
+            animation: matrix-loader 3s linear infinite;
+        }
+
+        @keyframes matrix-loader {
+            0% { width: 0; left: 0; }
+            50% { width: 100%; left: 0; }
+            100% { width: 0; left: 100%; }
+        }
+
+        /* Animation Star Wars : Balayage du radar de visée laser */
+        #theme-switch:checked ~ header::after {
+            content: "";
+            position: absolute;
+            bottom: -2px; left: 0;
+            width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #4facfe, transparent);
+            animation: sw-scan 2s ease-in-out infinite;
+        }
+
+        @keyframes sw-scan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 80px;
+            position: relative;
+        }
+
+        .logo {
+            font-weight: 900;
+            font-size: 1.6rem;
+            color: var(--text-main);
+            text-decoration: none;
+            text-shadow: 0 0 10px var(--theme-color);
+        }
+        .logo-svg-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-shadow: none;
+        }
+        .logo-name {
+            font-weight: 900;
+            font-size: 1.6rem;
+            color: var(--text-main);
+            text-shadow: 0 0 10px var(--theme-color);
+            font-family: var(--font-titles);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .logo-dot { color: var(--theme-color); }
+        /* SVG logo theming */
+        .ym-logo .ym-fill {
+            fill: var(--theme-color);
+            filter: drop-shadow(0 0 6px var(--theme-color));
+            transition: fill 0.4s, filter 0.4s;
+        }
+        /* Star Wars: gold mountains + blue glow */
+        #theme-switch:checked ~ header .ym-logo .ym-fill {
+            fill: #ffe81f;
+            filter: drop-shadow(0 0 8px #4facfe);
+        }
+        /* Hover pulse */
+        .logo-svg-wrap:hover .ym-logo .ym-fill {
+            filter: drop-shadow(0 0 14px var(--theme-color)) drop-shadow(0 0 28px var(--theme-color));
+        }
+        #theme-switch:checked ~ header .logo-svg-wrap:hover .ym-logo .ym-fill {
+            filter: drop-shadow(0 0 14px #4facfe) drop-shadow(0 0 28px #ffe81f);
+        }
+
+        .nav-right { display: flex; align-items: center; gap: 30px; }
+        .nav-links { display: flex; list-style: none; gap: 25px; }
+
+        .nav-links a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            font-weight: 700;
+            position: relative;
+            padding: 5px 10px;
+            transition: 0.3s;
+        }
+
+        /* Effet Hover Matrix (Curseur clignotant de console) */
+        .matrix-text-nav:hover::after {
+            content: "_";
+            animation: blink 0.8s infinite;
+            color: var(--theme-color);
+        }
+
+        /* Effet Hover Star Wars (Viseurs tactiques de cockpit) */
+        .sw-text-nav { display: none; }
+        #theme-switch:checked ~ header .matrix-text-nav { display: none; }
+        #theme-switch:checked ~ header .sw-text-nav { display: inline-block; }
+
+        .sw-text-nav:hover::before, .sw-text-nav:hover::after {
+            content: "";
+            position: absolute;
+            width: 8px; height: 100%;
+            border: 2px solid var(--theme-color);
+            animation: bracket-pulse 0.4s infinite alternate;
+        }
+        .sw-text-nav:hover::before { left: -5px; border-right: 0; top: 0; }
+        .sw-text-nav:hover::after { right: -5px; border-left: 0; top: 0; }
+
+        @keyframes bracket-pulse {
+            from { transform: scale(1); opacity: 1; }
+            to { transform: scale(1.1); opacity: 0.5; }
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .theme-btn {
+            background: transparent;
+            border: 1px solid var(--theme-color);
+            color: var(--theme-color);
+            padding: 8px 14px;
+            font-family: var(--font-titles);
+            font-size: 0.65rem;
+            cursor: pointer;
+            font-weight: 700;
+            box-shadow: 0 0 8px var(--shadow-glow);
+            transition: 0.3s;
+        }
+
+        .theme-btn:hover {
+            background: var(--theme-color);
+            color: var(--bg-base);
+        }
+
+        /* --- SECTIONS --- */
+        section { padding: 100px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 50px;
+            text-align: center;
+            color: #fff;
+            text-shadow: 0 0 10px var(--shadow-glow);
+        }
+
+        /* --- HERO --- */
+        #hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding-top: 120px;
+        }
+
+        .badge {
+            font-family: var(--font-titles);
+            border: 1px solid var(--theme-color);
+            color: var(--theme-color);
+            padding: 5px 12px;
+            font-size: 0.65rem;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        #hero h1 {
+            font-size: 3.8rem;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #fff, var(--theme-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #hero p {
+            color: var(--text-muted);
+            max-width: 700px;
+            font-size: 1.05rem;
+            margin-bottom: 35px;
+        }
+
+        .btn {
+            font-family: var(--font-titles);
+            display: inline-block;
+            padding: 12px 28px;
+            text-decoration: none;
+            background: transparent;
+            color: var(--theme-color);
+            border: 1px solid var(--theme-color);
+            font-weight: 700;
+            font-size: 0.75rem;
+            transition: 0.4s;
+        }
+
+        .btn:hover {
+            background: var(--theme-color);
+            color: var(--bg-base);
+            box-shadow: 0 0 20px var(--theme-color);
+        }
+
+        /* --- GRIDS & CARDS --- */
+        .grid-3, .grid-2 {
+            display: grid;
+            gap: 30px;
+        }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 35px;
+            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+
+        .card:hover {
+            border-color: var(--theme-color);
+            transform: translateY(-4px) !important; /* Garde la priorité sur l'animation de scroll au hover */
+            box-shadow: 0 10px 30px var(--shadow-glow);
+        }
+
+        .card h3 { color: var(--theme-color); font-size: 1.15rem; margin-bottom: 15px; }
+        .card h4 { font-family: var(--font-titles); font-size: 0.85rem; color: #fff; margin-bottom: 10px; }
+        .card p { font-size: 0.9rem; color: var(--text-muted); }
+        .card-meta { font-size: 0.75rem; color: var(--theme-color); margin-bottom: 15px; opacity: 0.8; }
+
+        .tag-container { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .tag {
+            font-size: 0.65rem;
+            border: 1px solid var(--border-color);
+            padding: 2px 8px;
+            color: var(--theme-color);
+            background: rgba(0, 255, 102, 0.03);
+        }
+
+        .list-cyber { list-style: none; margin-top: 10px; }
+        .list-cyber li { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; padding-left: 15px; position: relative; }
+        .list-cyber li::before { content: ">"; position: absolute; left: 0; color: var(--theme-color); }
+
+        /* ========================================================
+           ZONE PROJETS ASYMETRIQUE ET ORIGINAL CONSERVÉE
+           ======================================================== */
+        .projects-wrapper {
+            position: relative;
+            width: 100%;
+            transition: all 0.5s ease-in-out;
+        }
+
+        /* --- MODE 1 : MATRIX (Pipeline Vertical Alterné + Glitch) --- */
+        .matrix-pipeline {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .matrix-pipeline .project-card {
+            background: rgba(2, 8, 4, 0.9);
+            border-left: 4px solid var(--theme-color);
+            border-top: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 25px 30px;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        @keyframes matrix-glitch {
+            0% { transform: translate(0); text-shadow: none; }
+            20% { transform: translate(-2px, 2px); text-shadow: 1px 0 #00ff66, -1px 0 #ff0000; }
+            40% { transform: translate(-2px, -2px); text-shadow: -1px 0 #00ff66, 1px 0 #00f2fe; }
+            60% { transform: translate(2px, 2px); text-shadow: 1px -1px #00ff66, 2px 0 #ff00ff; }
+            80% { transform: translate(2px, -2px); text-shadow: none; }
+            100% { transform: translate(0); }
+        }
+
+        .matrix-pipeline .project-card:hover {
+            animation: matrix-glitch 0.3s linear infinite;
+            background: rgba(0, 255, 102, 0.05);
+            border-left-color: #fff;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.2);
+        }
+
+        .matrix-pipeline .project-card h3::before {
+            content: "[LOG_FILE] ";
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        /* --- MODE 2 : STAR WARS (Cockpit Arc de Cercle + Lévitation) --- */
+        .sw-galaxy-view {
+            display: none;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            perspective: 1000px;
+            padding-top: 40px;
+        }
+
+        .sw-galaxy-view .project-card:nth-child(1) { transform: rotateY(15deg) translateY(-10px); }
+        .sw-galaxy-view .project-card:nth-child(2) { transform: translateZ(20px) translateY(10px); }
+        .sw-galaxy-view .project-card:nth-child(3) { transform: rotateY(-15deg) translateY(-10px); }
+
+        .sw-galaxy-view .project-card {
+            background: rgba(9, 18, 34, 0.85);
+            border: 1px solid var(--border-color);
+            border-bottom: 3px solid var(--border-color);
+            padding: 35px 25px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.1);
+            animation: sw-float 4s ease-in-out infinite alternate;
+        }
+
+        .sw-galaxy-view .project-card:nth-child(2) { animation-delay: 1.3s; }
+        .sw-galaxy-view .project-card:nth-child(3) { animation-delay: 2.6s; }
+
+        @keyframes sw-float {
+            0% { transform: translateY(0px) rotateY(var(--rot, 0deg)); box-shadow: 0 5px 15px var(--shadow-glow); }
+            100% { transform: translateY(-15px) rotateY(var(--rot, 0deg)); box-shadow: 0 20px 35px var(--shadow-glow); }
+        }
+
+        .sw-galaxy-view .project-card:nth-child(1) { --rot: 15deg; }
+        .sw-galaxy-view .project-card:nth-child(2) { --rot: 0deg; }
+        .sw-galaxy-view .project-card:nth-child(3) { --rot: -15deg; }
+
+        .sw-galaxy-view .project-card:hover {
+            border-color: #fff !important;
+            background: rgba(79, 172, 254, 0.15);
+            cursor: crosshair;
+        }
+
+        /* Switch Structures Projets */
+        #theme-switch:checked ~ main .matrix-pipeline { display: none; }
+        #theme-switch:checked ~ main .sw-galaxy-view { display: grid; }
+
+        /* --- CONTACT --- */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+        }
+
+        .info-panel p { margin-bottom: 15px; font-size: 0.95rem; }
+        .info-panel strong { color: var(--theme-color); font-family: var(--font-titles); font-size: 0.8rem; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-family: var(--font-titles); font-size: 0.65rem; margin-bottom: 8px; color: var(--theme-color); }
+        .form-group input, .form-group textarea {
+            width: 100%; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); color: #fff; font-family: var(--font-body); font-size: 0.85rem;
+        }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--theme-color); }
+
+        footer { text-align: center; padding: 40px; font-family: var(--font-titles); font-size: 0.6rem; color: var(--text-muted); letter-spacing: 2px; }
+
+        /* ========================================================
+           CURSEURS PERSONNALISÉS
+           ======================================================== */
+
+        /* Curseur Matrix : croix de terminal avec halo vert */
+        #cursor-matrix {
+            position: fixed;
+            top: 0; left: 0;
+            pointer-events: none;
+            z-index: 99999;
+            display: block;
+        }
+        #cursor-matrix .cursor-cross {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            width: 22px;
+            height: 22px;
+        }
+        #cursor-matrix .cursor-cross::before,
+        #cursor-matrix .cursor-cross::after {
+            content: '';
+            position: absolute;
+            background: #00ff66;
+            box-shadow: 0 0 6px #00ff66, 0 0 12px #00ff66;
+        }
+        #cursor-matrix .cursor-cross::before {
+            width: 2px; height: 100%;
+            left: 50%; top: 0;
+            transform: translateX(-50%);
+        }
+        #cursor-matrix .cursor-cross::after {
+            height: 2px; width: 100%;
+            top: 50%; left: 0;
+            transform: translateY(-50%);
+        }
+        /* Point central */
+        #cursor-matrix .cursor-dot {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            width: 4px; height: 4px;
+            background: #fff;
+            box-shadow: 0 0 4px #00ff66;
+        }
+        /* Anneau de trail */
+        #cursor-matrix .cursor-ring {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            width: 36px; height: 36px;
+            border: 1px solid rgba(0,255,102,0.4);
+            border-radius: 50%;
+            transition: width 0.12s, height 0.12s, opacity 0.12s;
+        }
+        body.cursor-hovering #cursor-matrix .cursor-ring {
+            width: 52px; height: 52px;
+            border-color: rgba(0,255,102,0.8);
+        }
+        /* Texte clignotant sous le curseur Matrix */
+        #cursor-matrix .cursor-text {
+            position: absolute;
+            top: 14px; left: 10px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 9px;
+            color: #00ff66;
+            white-space: nowrap;
+            opacity: 0.8;
+            animation: blink 1s infinite;
+            letter-spacing: 1px;
+        }
+
+        /* Curseur Star Wars : viseur de cockpit / réticule laser */
+        #cursor-starwars {
+            position: fixed;
+            top: 0; left: 0;
+            pointer-events: none;
+            z-index: 99999;
+            display: none;
+        }
+        #cursor-starwars .sw-reticle {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            width: 32px; height: 32px;
+            animation: sw-reticle-spin 4s linear infinite;
+        }
+        #cursor-starwars .sw-reticle svg {
+            width: 100%; height: 100%;
+        }
+        /* Anneau extérieur qui pulse */
+        #cursor-starwars .sw-outer {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            width: 50px; height: 50px;
+            border: 1px solid rgba(79,172,254,0.3);
+            border-radius: 50%;
+            animation: sw-pulse-ring 2s ease-in-out infinite;
+        }
+        body.cursor-hovering #cursor-starwars .sw-outer {
+            width: 64px; height: 64px;
+            border-color: rgba(255,232,31,0.7);
+        }
+        /* Trail sabre laser */
+        #cursor-starwars .sw-saber-trail {
+            position: absolute;
+            top: 0; left: 0;
+            pointer-events: none;
+        }
+        @keyframes sw-reticle-spin {
+            from { transform: translate(-50%,-50%) rotate(0deg); }
+            to   { transform: translate(-50%,-50%) rotate(360deg); }
+        }
+        @keyframes sw-pulse-ring {
+            0%, 100% { opacity: 0.3; transform: translate(-50%,-50%) scale(1); }
+            50%       { opacity: 0.8; transform: translate(-50%,-50%) scale(1.15); }
+        }
+
+        /* Gestion affichage selon thème */
+        body.theme-sw #cursor-matrix   { display: none; }
+        body.theme-sw #cursor-starwars { display: block; }
+        body.theme-sw * { cursor: none !important; }
+        body:not(.theme-sw) * { cursor: none !important; }
+
+        /* ========================================================
+           OVERLAY DE TRANSITION THÉMATIQUE
+           ======================================================== */
+        #transition-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            pointer-events: none;
+            display: none;
+        }
+        #transition-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #transition-flash {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+        }
+
+        /* ========================================================
+           NOUVEAU : STYLES POUR ANIMATIONS DE SCROLL PAR THÈME
+           ======================================================== */
+        
+        /* État initial commun avant le scroll */
+        .scroll-animated {
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform, opacity;
+        }
+
+        /* --- THÈME 1 : ANIMATION MATRIX (Apparition Terminal / Scan vertical) --- */
+        .scroll-animated.matrix-scroll {
+            transform: translateY(30px) scale(0.98);
+            filter: brightness(0.3) blur(2px);
+        }
+
+        /* Quand visible sous Matrix */
+        .scroll-animated.matrix-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: brightness(1) blur(0);
+        }
+
+        /* --- THÈME 2 : ANIMATION STAR WARS (Hypervitesse / Translation latérale Force) --- */
+        #theme-switch:checked ~ main .scroll-animated.sw-scroll {
+            transform: translateX(-50px) translateZ(-100px);
+            filter: blur(5px);
+        }
+
+        /* Quand visible sous Star Wars */
+        #theme-switch:checked ~ main .scroll-animated.sw-scroll.is-visible {
+            opacity: 1;
+            transform: translateX(0) translateZ(0);
+            filter: blur(0);
+        }
+
+        /* --- HAMBURGER MENU --- */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 5px;
+            background: transparent;
+            border: none;
+        }
+        .hamburger span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: var(--theme-color);
+            transition: 0.3s;
+            box-shadow: 0 0 5px var(--theme-color);
+        }
+        .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .hamburger.open span:nth-child(2) { opacity: 0; }
+        .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+        @media (max-width: 900px) {
+            .sw-galaxy-view { grid-template-columns: 1fr; }
+            .sw-galaxy-view .project-card:nth-child(1),
+            .sw-galaxy-view .project-card:nth-child(2),
+            .sw-galaxy-view .project-card:nth-child(3) { transform: none !important; animation: none; }
+            #hero h1 { font-size: 2.5rem; }
+            .contact-grid { grid-template-columns: 1fr; gap: 30px; }
+            .hamburger { display: flex; }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 80px;
+                right: 0;
+                background: rgba(2, 5, 10, 0.97);
+                border: 1px solid var(--border-color);
+                flex-direction: column;
+                gap: 0;
+                min-width: 200px;
+                z-index: 999;
+            }
+            .nav-links.open { display: flex; }
+            .nav-links li { border-bottom: 1px solid var(--border-color); }
+            .nav-links a { display: block; padding: 14px 20px; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <input type="checkbox" id="theme-switch">
+
+    <canvas id="matrix-canvas" class="bg-canvas"></canvas>
+    <canvas id="starwars-canvas" class="bg-canvas"></canvas>
+
+    <header>
+        <div class="container nav-container">
+            <a href="#hero" class="logo logo-svg-wrap" aria-label="Yacine Merghem">
+                <svg class="ym-logo" viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg" width="54" height="54" aria-hidden="true">
+                    <!-- Outer triangle (large A shape) -->
+                    <polygon class="ym-fill" points="240,30 460,440 20,440"/>
+                    <!-- White cutout left gap -->
+                    <polygon fill="var(--bg-base)" points="240,100 110,420 185,420 240,305 295,420 370,420"/>
+                    <!-- Inner mountain peaks -->
+                    <polygon class="ym-fill" points="175,420 240,290 305,420"/>
+                    <!-- Y stroke left arm -->
+                    <polygon class="ym-fill" points="55,30 130,30 240,200 350,30 425,30 265,270 265,420 215,420 215,270"/>
+                </svg>
+                <span class="logo-name">YACINE<span class="logo-dot">.MERGHEM</span></span>
+            </a>
+            <div class="nav-right">
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="#hero" class="matrix-text-nav">// CORE</a><a href="#hero" class="sw-text-nav">HOLOCRON</a></li>
+                    <li><a href="#projets" class="matrix-text-nav">// PROJETS</a><a href="#projets" class="sw-text-nav">MISSIONS</a></li>
+                    <li><a href="#skills" class="matrix-text-nav">// SKILLS</a><a href="#skills" class="sw-text-nav">POWERS</a></li>
+                    <li><a href="#contact" class="matrix-text-nav">// CONTACT</a><a href="#contact" class="sw-text-nav">COMMS</a></li>
+                </ul>
+                <label for="theme-switch" class="theme-btn">
+                    <span class="matrix-text">TO_STAR_WARS</span>
+                    <span class="sw-text">TO_MATRIX</span>
+                </label>
+                <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- HERO SECTION -->
+        <section id="hero">
+            <div class="container">
+                <span class="badge">
+                    <span class="matrix-text">SYSTEM_ACTIVE // AGE: 20 // DC_PARIS</span>
+                    <span class="sw-text">HOLOCRON_ONLINE // AGE: 20 // CORUSCANT_ACADEMY</span>
+                </span>
+                <h1>YACINE MERGHEM</h1>
+                <p>
+                    <span class="matrix-text">> Étudiant en Bachelor IA & Automation à Digital Campus Paris. Curieux et rigoureux, je développe des architectures de traitement de données, conçois des solutions automatisées de bout en bout et optimise l'intégration des intelligences artificielles génératives.</span>
+                    <span class="sw-text">> Apprenti Jedi en ingénierie des systèmes autonomes à la Digital Campus Academy. Capable de programmer les matrices comportementales de droïdes d'assistance et de manipuler les flux de la Force de données complexes pour automatiser la galaxie.</span>
+                </p>
+                <div class="badge" style="border-style: dashed; display: block; max-width: max-content;">
+                    <span class="matrix-text">🎯 RECHERCHE ALTERNANCE // RYTHME: 2j École - 3j Entreprise // DEBUT: Septembre 2026 (2 ans)</span>
+                    <span class="sw-text">🎯 RECHERCHE CONTRAT DE CHASSE // RYTHME: 2j Temple - 3j Guilde // DEBUT: Septembre 2026 (2 cycles)</span>
+                </div>
+                <br><br>
+                <a href="#projets" class="btn">
+                    <span class="matrix-text">RUN_PROJ_DIAGNOSTIC.SH</span>
+                    <span class="sw-text">LOAD_SYSTEM_SCHEMATICS</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- SECTION PROJETS ORIGINALES -->
+        <section id="projets">
+            <div class="container">
+                <h2 class="section-title">
+                    <span class="matrix-text">[ CORE_PROJECTS_PIPELINE ]</span>
+                    <span class="sw-text">[ HOLO_TACTICAL_MAP ]</span>
+                </h2>
+                
+                <div class="projects-wrapper">
+                    <!-- MATRIX PIPELINE (Animé avec la classe scroll) -->
+                    <div class="matrix-pipeline">
+                        <div class="project-card scroll-animated">
+                            <h3>INTELLIGENT_DOCUMENT_PARSER</h3>
+                            <p>Modélisation de solutions concrètes avec traitement de données automatisé. Création d'outils automatisant le tri d'informations, l'analyse structurelle et la génération ciblée (CV et lettres de motivation autonomes).</p>
+                            <div class="tag-container"><span class="tag">AI_AUTOMATION</span><span class="tag">PARSING</span><span class="tag">GEMINI_ENGINE</span></div>
+                        </div>
+                        <div class="project-card scroll-animated">
+                            <h3>UI_UX_CORE_REFACTORING</h3>
+                            <p>Analyse poussée d'architectures web vivantes, détection de points de friction d'interfaces et formulation de plans d'optimisation d'expérience utilisateur et d'interfaces web réactives.</p>
+                            <div class="tag-container"><span class="tag">FIGMA_PROTOTYPE</span><span class="tag">ANALYSIS</span><span class="tag">OPTIMIZATION</span></div>
+                        </div>
+                        <div class="project-card scroll-animated">
+                            <h3>BRAND_IDENTITY_COMPILER</h3>
+                            <p>Génération complète d'éléments de marque et de chartes graphiques de projets (PIV, conception de logos d'entreprises, architectures et designs de cartes de visite professionnelles).</p>
+                            <div class="tag-container"><span class="tag">ILLUSTRATOR</span><span class="tag">PHOTOSHOP</span><span class="tag">PIV_MAKER</span></div>
+                        </div>
+                    </div>
+
+                    <!-- STAR WARS COCKPIT VIEW (Animé avec la classe scroll) -->
+                    <div class="sw-galaxy-view">
+                        <div class="project-card scroll-animated">
+                            <h3 style="font-size:1rem; letter-spacing:1px;">DROID_DOCUMENT_SCRIBE</h3>
+                            <p style="margin-top:10px;">Programmation de routines cognitives pour générer des parchemins administratifs et missives de motivation via les flux des oracles algorithmiques.</p>
+                            <div class="tag-container" style="justify-content:center;"><span class="tag">CHATGPT</span><span class="tag">ORACLE_LINK</span></div>
+                        </div>
+                        <div class="project-card scroll-animated">
+                            <h3 style="font-size:1rem; letter-spacing:1px;">TACTICAL_UI_NAVIGATOR</h3>
+                            <p style="margin-top:10px;">Cartographie et optimisation des interfaces de bord des croiseurs stellaires pour maximiser les réflexes de navigation de l'équipage.</p>
+                            <div class="tag-container" style="justify-content:center;"><span class="tag">UX_SABRE</span><span class="tag">PORTFOLIO_CRAFT</span></div>
+                        </div>
+                        <div class="project-card scroll-animated">
+                            <h3 style="font-size:1rem; letter-spacing:1px;">EMPIRE_EMBLEM_FORGE</h3>
+                            <p style="margin-top:10px;">Sculpture numérique d'armoiries de guildes, blasons personnalisés et codes visuels identitaires à travers les secteurs impériaux.</p>
+                            <div class="tag-container" style="justify-content:center;"><span class="tag">ADOBE_FORGE</span><span class="tag">CYBER_PIV</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- COMPETENCES -->
+        <section id="skills">
+            <div class="container">
+                <h2 class="section-title">
+                    <span class="matrix-text">[ SKILLS_MATRIX ]</span>
+                    <span class="sw-text">[ FORCE_ABILITIES ]</span>
+                </h2>
+                <div class="grid-3">
+                    <div class="card scroll-animated">
+                        <h3>01_AUTOMATION & IA</h3>
+                        <p>Conception et modélisation de processus intelligents. Automatisation complète de flux de documents, génération de CV et lettres de motivation automatisées.</p>
+                        <div class="tag-container">
+                            <span class="tag">Gemini</span><span class="tag">ChatGPT</span><span class="tag">Copilot</span>
+                        </div>
+                    </div>
+                    <div class="card scroll-animated">
+                        <h3>02_UX / UI & DESIGN</h3>
+                        <p>Analyse d'un site web, solutions d'amélioration. Interface portfolio web et analyse d'architectures numériques ergonomiques.</p>
+                        <div class="tag-container">
+                            <span class="tag">Figma</span><span class="tag">WordPress</span><span class="tag">Web Design</span>
+                        </div>
+                    </div>
+                    <div class="card scroll-animated">
+                        <h3>03_BRANDING & MEDIA</h3>
+                        <p>PIV : Création d'un logo, carte de visite, etc. Réalisation et production complète de reportages d'art sur le terrain.</p>
+                        <div class="tag-container">
+                            <span class="tag">Photoshop</span><span class="tag">Illustrator</span><span class="tag">InDesign</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PARCOURS EXPERIENCES & FORMATIONS -->
+        <section id="xp">
+            <div class="container">
+                <h2 class="section-title">
+                    <span class="matrix-text">[ ARCHIVE_LOGS ]</span>
+                    <span class="sw-text">[ TIMELINE_RECORDS ]</span>
+                </h2>
+                <div class="grid-2">
+                    <div>
+                        <h3 style="margin-bottom: 20px;">// ACADEMIC_TRACK</h3>
+                        <div class="card scroll-animated" style="margin-bottom: 20px;">
+                            <div class="card-meta">Depuis Septembre 2025</div>
+                            <h4>Bachelor IA & Automation</h4>
+                            <p>Digital Campus Paris — Acquisition de compétences poussées en IA, automatisation globale de tâches et structuration de données complexes.</p>
+                        </div>
+                        <div class="card scroll-animated">
+                            <div class="card-meta">Septembre 2021 — Juin 2024</div>
+                            <h4>Baccalauréat général</h4>
+                            <p>Lycée Rosa Parks, Montgeron.</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 style="margin-bottom: 20px;">// OPERATIONAL_MISSIONS</h3>
+                        <div class="card scroll-animated" style="margin-bottom: 20px;">
+                            <div class="card-meta">2024 — 2026</div>
+                            <h4>Chargé des Opérations</h4>
+                            <p>PMU Ris Orangis, France</p>
+                            <ul class="list-cyber">
+                                <li>Supervision complète des courses hippiques.</li>
+                                <li>Suivi opérationnel méthodique et coordination d'équipes.</li>
+                                <li>Rigueur et réactivité élevée en milieu dynamique.</li>
+                            </ul>
+                        </div>
+                        <div class="card scroll-animated">
+                            <div class="card-meta">Janvier 2025 — Septembre 2025</div>
+                            <h4>Employé saisonnier (BNSSA)</h4>
+                            <p>Piscine Municipale Sainte-Geneviève-des-Bois</p>
+                            <ul class="list-cyber">
+                                <li>Surveillance continue des bassins et sécurisation active.</li>
+                                <li>Gestion de la sécurité des usagers et contrôle des risques.</li>
+                                <li>Travail collaboratif en équipe sous fort stress opérationnel.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECURE CONTACT -->
+        <section id="contact">
+            <div class="container">
+                <h2 class="section-title">
+                    <span class="matrix-text">[ ESTABLISH_CONNECTION ]</span>
+                    <span class="sw-text">[ SECURE_TRANSMISSION ]</span>
+                </h2>
+                <div class="contact-grid">
+                    <div class="info-panel scroll-animated">
+                        <h3 style="color: var(--theme-color); margin-bottom: 25px;">YACINE MERGHEM</h3>
+                        <p><strong>COM_LINK:</strong> yc.merghem@gmail.com</p>
+                        <p><strong>SECURE_LINE:</strong> 06 50 36 59 75</p>
+                        <p><strong>GEOLOCATION:</strong> Morsang-sur-Orge (91390)</p>
+                        <p><strong>VEHICLE_UNIT:</strong> Permis B / Véhicule personnel</p>
+                        <p><strong>NET_LINK:</strong> in @Yacine Merghem</p>
+                        <p style="margin-top: 30px; font-size: 0.8rem; color: var(--text-muted);">
+                            <span class="matrix-text">// Qualités : Pensée orientée produit, automatisation des processus, esprit d'innovation, apprentissage rapide et collaboration en équipe.</span>
+                            <span class="sw-text">// Centres d'intérêt : Simulations virtuelles (Jeux vidéo), combat rapproché (Judo), tactique collective (Football).</span>
+                        </p>
+                    </div>
+
+                    <div class="scroll-animated">
+                        <form id="contact-form">
+                            <div class="form-group">
+                                <label>NODE_IDENTIFIER :</label>
+                                <input type="text" id="form-name" placeholder="Votre nom / Entreprise" required>
+                            </div>
+                            <div class="form-group">
+                                <label>ROUTING_EMAIL :</label>
+                                <input type="email" id="form-email" placeholder="votre@adresse.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label>DATA_STREAM_LOG :</label>
+                                <textarea id="form-message" placeholder="Détaillez vos besoins ou propositions d'alternance..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn" style="width: 100%;" id="form-submit">
+                                <span class="matrix-text">BROADCAST_PACKET</span>
+                                <span class="sw-text">ENGAGE_COMMS</span>
+                            </button>
+                            <div id="form-feedback" style="margin-top:15px; font-size:0.8rem; display:none;"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- CURSEUR MATRIX -->
+    <div id="cursor-matrix">
+        <div class="cursor-ring"></div>
+        <div class="cursor-cross"></div>
+        <div class="cursor-dot"></div>
+        <div class="cursor-text">█</div>
+    </div>
+
+    <!-- CURSEUR STAR WARS -->
+    <div id="cursor-starwars">
+        <div class="sw-outer"></div>
+        <div class="sw-reticle">
+            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Cercle principal -->
+                <circle cx="16" cy="16" r="12" stroke="#4facfe" stroke-width="1" stroke-dasharray="4 3" opacity="0.9"/>
+                <!-- Croix centrale -->
+                <line x1="16" y1="4"  x2="16" y2="12" stroke="#ffe81f" stroke-width="1.5"/>
+                <line x1="16" y1="20" x2="16" y2="28" stroke="#ffe81f" stroke-width="1.5"/>
+                <line x1="4"  y1="16" x2="12" y2="16" stroke="#ffe81f" stroke-width="1.5"/>
+                <line x1="20" y1="16" x2="28" y2="16" stroke="#ffe81f" stroke-width="1.5"/>
+                <!-- Point central -->
+                <circle cx="16" cy="16" r="2" fill="#ffffff" opacity="0.95"/>
+                <!-- Coins de visée -->
+                <path d="M6 10 L6 6 L10 6"  stroke="#4facfe" stroke-width="1.5" fill="none"/>
+                <path d="M22 6 L26 6 L26 10" stroke="#4facfe" stroke-width="1.5" fill="none"/>
+                <path d="M6 22 L6 26 L10 26" stroke="#4facfe" stroke-width="1.5" fill="none"/>
+                <path d="M22 26 L26 26 L26 22" stroke="#4facfe" stroke-width="1.5" fill="none"/>
+            </svg>
+        </div>
+        <canvas class="sw-saber-trail" id="saber-trail-canvas"></canvas>
+    </div>
+
+    <!-- OVERLAY DE TRANSITION THÉMATIQUE -->
+    <div id="transition-overlay">
+        <canvas id="transition-canvas"></canvas>
+        <div id="transition-flash"></div>
+    </div>
+
+    <footer>
+        &copy; 2026 YACINE MERGHEM // DIGITAL CAMPUS MULTI-THEME INTERFACE // ALL SYSTEMS OPERATIONAL
+    </footer>
+
+    <!-- ENGINE CANVAS CODE + SCROLL ENGINE -->
+    <script>
+        /* ========================================================
+           MOTEUR DE CURSEURS PERSONNALISÉS
+           ======================================================== */
+        const cursorMatrix   = document.getElementById('cursor-matrix');
+        const cursorSW       = document.getElementById('cursor-starwars');
+        const saberCanvas    = document.getElementById('saber-trail-canvas');
+        const saberCtx       = saberCanvas.getContext('2d');
+        const cbTheme        = document.getElementById('theme-switch');
+
+        let mouseX = -200, mouseY = -200;
+        let trailPoints = []; // pour le trail sabre
+
+        // Resize du canvas trail
+        function resizeSaber() {
+            saberCanvas.width  = window.innerWidth;
+            saberCanvas.height = window.innerHeight;
+            saberCanvas.style.width  = window.innerWidth  + 'px';
+            saberCanvas.style.height = window.innerHeight + 'px';
+        }
+        resizeSaber();
+        window.addEventListener('resize', resizeSaber);
+
+        // Suivi de la souris
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            // Déplace curseur Matrix
+            cursorMatrix.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+
+            // Déplace curseur SW
+            cursorSW.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+
+            // Ajoute un point au trail
+            trailPoints.push({ x: mouseX, y: mouseY, age: 0 });
+            if (trailPoints.length > 28) trailPoints.shift();
+        });
+
+        // Hover sur éléments interactifs
+        const interactives = 'a, button, label, input, textarea, .btn, .card, .project-card, .theme-btn';
+        document.addEventListener('mouseover', (e) => {
+            if (e.target.closest(interactives)) document.body.classList.add('cursor-hovering');
+        });
+        document.addEventListener('mouseout', (e) => {
+            if (e.target.closest(interactives)) document.body.classList.remove('cursor-hovering');
+        });
+
+        // Sync classe thème sur body
+        function syncThemeClass() {
+            if (cbTheme.checked) {
+                document.body.classList.add('theme-sw');
+            } else {
+                document.body.classList.remove('theme-sw');
+            }
+        }
+        cbTheme.addEventListener('change', syncThemeClass);
+        syncThemeClass();
+
+        // Boucle trail sabre laser (Star Wars)
+        function drawSaberTrail() {
+            saberCtx.clearRect(0, 0, saberCanvas.width, saberCanvas.height);
+
+            if (cbTheme.checked && trailPoints.length > 2) {
+                for (let i = 1; i < trailPoints.length; i++) {
+                    const p1 = trailPoints[i - 1];
+                    const p2 = trailPoints[i];
+                    const ratio   = i / trailPoints.length;
+                    const alpha   = ratio * 0.75;
+                    const width   = ratio * 3.5;
+
+                    // Lueur bleue extérieure
+                    saberCtx.beginPath();
+                    saberCtx.strokeStyle = `rgba(79,172,254,${alpha * 0.5})`;
+                    saberCtx.lineWidth   = width + 4;
+                    saberCtx.lineCap     = 'round';
+                    saberCtx.moveTo(p1.x, p1.y);
+                    saberCtx.lineTo(p2.x, p2.y);
+                    saberCtx.stroke();
+
+                    // Cœur blanc/jaune
+                    saberCtx.beginPath();
+                    saberCtx.strokeStyle = `rgba(255,232,31,${alpha})`;
+                    saberCtx.lineWidth   = width * 0.5;
+                    saberCtx.lineCap     = 'round';
+                    saberCtx.moveTo(p1.x, p1.y);
+                    saberCtx.lineTo(p2.x, p2.y);
+                    saberCtx.stroke();
+                }
+            }
+
+            // Trail Matrix : petits caractères qui s'effacent
+            if (!cbTheme.checked && trailPoints.length > 1) {
+                for (let i = 0; i < trailPoints.length; i++) {
+                    const ratio = i / trailPoints.length;
+                    const alpha = ratio * 0.6;
+                    const size  = 9 + ratio * 3;
+                    saberCtx.font      = `${size}px 'Share Tech Mono', monospace`;
+                    saberCtx.fillStyle = `rgba(0,255,102,${alpha})`;
+                    const ch = Math.random() > 0.5 ? '1' : '0';
+                    saberCtx.fillText(ch, trailPoints[i].x + 4, trailPoints[i].y - 4);
+                }
+            }
+
+            requestAnimationFrame(drawSaberTrail);
+        }
+        drawSaberTrail();
+        /* ========================================================
+           MOTEUR DE TRANSITION THÉMATIQUE
+           ======================================================== */
+        const overlay    = document.getElementById('transition-overlay');
+        const tCanvas    = document.getElementById('transition-canvas');
+        const tCtx       = tCanvas.getContext('2d');
+        const flashEl    = document.getElementById('transition-flash');
+
+        function resizeTransition() {
+            tCanvas.width  = window.innerWidth;
+            tCanvas.height = window.innerHeight;
+        }
+        resizeTransition();
+        window.addEventListener('resize', resizeTransition);
+
+        /* ---------- TRANSITION MATRIX → STAR WARS ----------
+           1. Glitch vert en cascade (colonnes qui se fragmentent)
+           2. Flash blanc aveuglant
+           3. Bascule du thème + fondu out
+        -------------------------------------------------------- */
+        function runMatrixToSW(onSwitch) {
+            overlay.style.display = 'block';
+            flashEl.style.background = '#ffffff';
+            flashEl.style.opacity = '0';
+
+            const W = tCanvas.width, H = tCanvas.height;
+            const colW   = 18;
+            const cols   = Math.ceil(W / colW);
+            const chars  = "01";
+            let frame    = 0;
+            const totalFrames = 55;
+
+            // colonnes avec délai décalé
+            const colDelays = Array.from({length: cols}, (_, i) => Math.floor(Math.random() * 20));
+
+            function drawGlitch() {
+                // fond semi-transparent vert très sombre
+                tCtx.fillStyle = frame < 10 ? 'rgba(2,5,10,0.0)' : 'rgba(2,5,10,0.18)';
+                tCtx.fillRect(0, 0, W, H);
+
+                for (let c = 0; c < cols; c++) {
+                    if (frame < colDelays[c]) continue;
+                    const progress = Math.min((frame - colDelays[c]) / 30, 1);
+                    const numChars = Math.floor(progress * (H / colW) * 1.5);
+
+                    for (let r = 0; r < numChars; r++) {
+                        const ch = chars[Math.floor(Math.random() * chars.length)];
+                        const alpha = Math.random() * 0.9 + 0.1;
+                        const bright = Math.random() > 0.85;
+                        tCtx.fillStyle = bright
+                            ? `rgba(200,255,200,${alpha})`
+                            : `rgba(0,255,102,${alpha * progress})`;
+                        tCtx.font = `bold ${colW}px 'Share Tech Mono', monospace`;
+                        tCtx.fillText(ch, c * colW, r * colW + colW);
+                    }
+
+                    // ligne de tête lumineuse
+                    if (progress < 1) {
+                        tCtx.fillStyle = '#ffffff';
+                        tCtx.fillRect(c * colW, Math.floor(progress * H * 1.5 * colW / colW) * colW, colW, 2);
+                    }
+                }
+
+                frame++;
+
+                if (frame < totalFrames) {
+                    requestAnimationFrame(drawGlitch);
+                } else {
+                    // Flash blanc
+                    flashEl.style.transition = 'opacity 0.18s ease-in';
+                    flashEl.style.opacity = '1';
+                    setTimeout(() => {
+                        onSwitch();
+                        tCtx.clearRect(0, 0, W, H);
+                        flashEl.style.transition = 'opacity 0.4s ease-out';
+                        flashEl.style.opacity = '0';
+                        setTimeout(() => { overlay.style.display = 'none'; }, 450);
+                    }, 200);
+                }
+            }
+            drawGlitch();
+        }
+
+        /* ---------- TRANSITION STAR WARS → MATRIX ----------
+           1. Hyperespace : lignes de vitesse dorées qui s'allongent vers l'extérieur
+           2. Flash jaune/blanc aveuglant
+           3. Bascule du thème + fondu out
+        ----------------------------------------------------- */
+        function runSWToMatrix(onSwitch) {
+            overlay.style.display = 'block';
+            flashEl.style.background = '#ffe81f';
+            flashEl.style.opacity = '0';
+
+            const W = tCanvas.width, H = tCanvas.height;
+            const cx = W / 2, cy = H / 2;
+            const numStreaks = 220;
+            let frame = 0;
+            const totalFrames = 60;
+
+            // Génère les étoiles filantes
+            const streaks = Array.from({length: numStreaks}, () => {
+                const angle = Math.random() * Math.PI * 2;
+                const dist  = Math.random() * 120 + 30;
+                return { angle, dist, speed: Math.random() * 0.065 + 0.04, length: Math.random() * 80 + 40 };
+            });
+
+            function drawHyperspace() {
+                const progress = frame / totalFrames;
+                // Fond qui s'assombrit
+                tCtx.fillStyle = `rgba(2,5,10,${0.08 + progress * 0.18})`;
+                tCtx.fillRect(0, 0, W, H);
+
+                for (const s of streaks) {
+                    const stretchFactor = 1 + progress * 12;
+                    const curDist   = s.dist + frame * frame * s.speed * 1.8;
+                    const tailDist  = Math.max(0, curDist - s.length * stretchFactor);
+
+                    const x1 = cx + Math.cos(s.angle) * tailDist;
+                    const y1 = cy + Math.sin(s.angle) * tailDist;
+                    const x2 = cx + Math.cos(s.angle) * curDist;
+                    const y2 = cy + Math.sin(s.angle) * curDist;
+
+                    const alpha = Math.min(1, progress * 2.5);
+                    const grad = tCtx.createLinearGradient(x1, y1, x2, y2);
+                    grad.addColorStop(0, `rgba(255,232,31,0)`);
+                    grad.addColorStop(0.4, `rgba(79,172,254,${alpha * 0.7})`);
+                    grad.addColorStop(1, `rgba(255,255,255,${alpha})`);
+
+                    tCtx.beginPath();
+                    tCtx.strokeStyle = grad;
+                    tCtx.lineWidth = 1 + progress * 2;
+                    tCtx.moveTo(x1, y1);
+                    tCtx.lineTo(x2, y2);
+                    tCtx.stroke();
+                }
+
+                // Halo central qui grandit
+                const haloR = progress * 200;
+                if (haloR > 0) {
+                    const halo = tCtx.createRadialGradient(cx, cy, 0, cx, cy, haloR);
+                    halo.addColorStop(0, `rgba(255,232,31,${progress * 0.6})`);
+                    halo.addColorStop(1, 'rgba(255,232,31,0)');
+                    tCtx.fillStyle = halo;
+                    tCtx.beginPath();
+                    tCtx.arc(cx, cy, haloR, 0, Math.PI * 2);
+                    tCtx.fill();
+                }
+
+                frame++;
+
+                if (frame < totalFrames) {
+                    requestAnimationFrame(drawHyperspace);
+                } else {
+                    flashEl.style.transition = 'opacity 0.15s ease-in';
+                    flashEl.style.opacity = '1';
+                    setTimeout(() => {
+                        onSwitch();
+                        tCtx.clearRect(0, 0, W, H);
+                        flashEl.style.transition = 'opacity 0.5s ease-out';
+                        flashEl.style.opacity = '0';
+                        setTimeout(() => { overlay.style.display = 'none'; }, 550);
+                    }, 180);
+                }
+            }
+            drawHyperspace();
+        }
+
+        /* ---------- INTERCEPTION DU SWITCH ---------- */
+        const themeLabel = document.querySelector('label[for="theme-switch"]');
+        if (themeLabel) {
+            themeLabel.addEventListener('click', (e) => {
+                e.preventDefault();
+                const cb = document.getElementById('theme-switch');
+                const goingToSW = !cb.checked; // va passer à SW
+
+                if (goingToSW) {
+                    runMatrixToSW(() => { cb.checked = true; cb.dispatchEvent(new Event('change')); });
+                } else {
+                    runSWToMatrix(() => { cb.checked = false; cb.dispatchEvent(new Event('change')); });
+                }
+            });
+        }
+        const mCanvas = document.getElementById('matrix-canvas');
+        const swCanvas = document.getElementById('starwars-canvas');
+        const mCtx = mCanvas.getContext('2d');
+        const swCtx = swCanvas.getContext('2d');
+        const themeCheckbox = document.getElementById('theme-switch');
+
+        // --- CANVAS RESIZE (recalcule les colonnes Matrix) ---
+        const matrixChars = "0101010110010101110011010101011010110110";
+        const charArray = matrixChars.split("");
+        const fontSize = 14;
+        let columns, rainDrops;
+
+        function initMatrix() {
+            columns = Math.floor(mCanvas.width / fontSize);
+            rainDrops = Array(columns).fill(0).map(() => Math.random() * -50);
+        }
+
+        function resize() {
+            mCanvas.width = swCanvas.width = window.innerWidth;
+            mCanvas.height = swCanvas.height = window.innerHeight;
+            initMatrix();
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // --- MATRIX RAIN ---
+        function drawMatrix() {
+            mCtx.fillStyle = 'rgba(2, 5, 10, 0.1)';
+            mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
+            mCtx.fillStyle = '#00ff66';
+            mCtx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < rainDrops.length; i++) {
+                const text = charArray[Math.floor(Math.random() * charArray.length)];
+                mCtx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+                if (rainDrops[i] * fontSize > mCanvas.height && Math.random() > 0.975) {
+                    rainDrops[i] = 0;
+                }
+                rainDrops[i]++;
+            }
+        }
+
+        // --- STARFIELD ---
+        const numStars = 400;
+        const stars = [];
+        for (let i = 0; i < numStars; i++) {
+            stars.push({
+                x: Math.random() * swCanvas.width - swCanvas.width / 2,
+                y: Math.random() * swCanvas.height - swCanvas.height / 2,
+                z: Math.random() * swCanvas.width
+            });
+        }
+
+        function drawStarWars() {
+            swCtx.fillStyle = 'rgba(2, 5, 10, 0.15)';
+            swCtx.fillRect(0, 0, swCanvas.width, swCanvas.height);
+            const cx = swCanvas.width / 2;
+            const cy = swCanvas.height / 2;
+
+            for (let i = 0; i < numStars; i++) {
+                let star = stars[i];
+                let px = (star.x / star.z) * cx + cx;
+                let py = (star.y / star.z) * cy + cy;
+
+                star.z -= 10;
+                if (star.z <= 0) {
+                    star.z = swCanvas.width;
+                    star.x = Math.random() * swCanvas.width - cx;
+                    star.y = Math.random() * swCanvas.height - cy;
+                }
+
+                let x = (star.x / star.z) * cx + cx;
+                let y = (star.y / star.z) * cy + cy;
+
+                swCtx.beginPath();
+                swCtx.strokeStyle = '#4facfe';
+                swCtx.lineWidth = 1.5 * (1 - star.z / swCanvas.width);
+                swCtx.moveTo(px, py);
+                swCtx.lineTo(x, y);
+                swCtx.stroke();
+            }
+        }
+
+        // --- BOUCLE PRINCIPALE (n'anime que le canvas actif) ---
+        function loop() {
+            if (!themeCheckbox.checked) {
+                drawMatrix();
+            } else {
+                drawStarWars();
+            }
+            requestAnimationFrame(loop);
+        }
+        loop();
+
+        /* ========================================================
+           HAMBURGER MENU
+           ======================================================== */
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('nav-links');
+
+        hamburger.addEventListener('click', () => {
+            const isOpen = navLinks.classList.toggle('open');
+            hamburger.classList.toggle('open', isOpen);
+            hamburger.setAttribute('aria-expanded', isOpen);
+        });
+
+        // Fermer le menu au clic sur un lien
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('open');
+                hamburger.classList.remove('open');
+                hamburger.setAttribute('aria-expanded', false);
+            });
+        });
+
+        /* ========================================================
+           FORMULAIRE DE CONTACT — FEEDBACK UTILISATEUR
+           ======================================================== */
+        const contactForm = document.getElementById('contact-form');
+        const formFeedback = document.getElementById('form-feedback');
+        const formSubmit = document.getElementById('form-submit');
+        const isStarWars = () => themeCheckbox.checked;
+
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('form-name').value.trim();
+            const email = document.getElementById('form-email').value.trim();
+            const message = document.getElementById('form-message').value.trim();
+
+            if (!name || !email || !message) return;
+
+            // Simulation d'envoi (à remplacer par un vrai backend/EmailJS)
+            formSubmit.disabled = true;
+            formSubmit.textContent = isStarWars() ? 'TRANSMITTING...' : 'SENDING_PACKET...';
+
+            setTimeout(() => {
+                formFeedback.style.display = 'block';
+                formFeedback.style.color = isStarWars() ? '#4facfe' : '#00ff66';
+                formFeedback.textContent = isStarWars()
+                    ? '✓ TRANSMISSION RECEIVED — A Jedi will contact you soon.'
+                    : '✓ PACKET_DELIVERED // Connection established. Response incoming.';
+                contactForm.reset();
+                formSubmit.disabled = false;
+                formSubmit.innerHTML = isStarWars()
+                    ? '<span class="sw-text">ENGAGE_COMMS</span>'
+                    : '<span class="matrix-text">BROADCAST_PACKET</span>';
+            }, 1200);
+        });
+
+        /* ========================================================
+           INTERSECTION OBSERVER — ANIMATIONS AU SCROLL
+           ======================================================== */
+        document.addEventListener("DOMContentLoaded", () => {
+            const animatedElements = document.querySelectorAll(".scroll-animated");
+
+            function updateThemeScrollClasses() {
+                animatedElements.forEach(el => {
+                    if (themeCheckbox.checked) {
+                        el.classList.remove("matrix-scroll");
+                        el.classList.add("sw-scroll");
+                    } else {
+                        el.classList.remove("sw-scroll");
+                        el.classList.add("matrix-scroll");
+                    }
+                });
+            }
+
+            updateThemeScrollClasses();
+            themeCheckbox.addEventListener("change", updateThemeScrollClasses);
+
+            const observerOptions = {
+                root: null,
+                threshold: 0.15,
+                rootMargin: "0px 0px -50px 0px"
+            };
+
+            const scrollObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("is-visible");
+                    }
+                });
+            }, observerOptions);
+
+            animatedElements.forEach(el => scrollObserver.observe(el));
+        });
+    </script>
+</body>
+</html>
